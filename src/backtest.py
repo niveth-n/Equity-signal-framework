@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import yaml  # pip install pyyaml
+import yaml
 from sklearn.metrics import (
     accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
 )
@@ -11,7 +11,7 @@ from sklearn.metrics import (
 from .features import add_basic_features
 from .model import make_xy, train_model, FEATURES
 
-# ----------------------------- data -----------------------------------------
+# ----------------------- data -----------------------
 
 def make_synth(n_assets=12, start="2024-01-02", end="2025-06-30", seed=42) -> pd.DataFrame:
     rng = np.random.default_rng(seed)
@@ -30,20 +30,20 @@ def load_or_synth(start: str, end: str, seed: int) -> pd.DataFrame:
     csv = Path("data/prices.csv")
     if csv.exists():
         df = pd.read_csv(csv, parse_dates=["date"])
-        df = df[(df["date"] >= pd.to_datetime(start)) & (df["date"] <= pd.to_datetime(end))]
-        return df[["date", "asset", "close"]].copy()
+        mask = (df["date"] >= pd.to_datetime(start)) & (df["date"] <= pd.to_datetime(end))
+        return df.loc[mask, ["date", "asset", "close"]].copy()
     return make_synth(start=start, end=end, seed=seed)
 
-# --------------------------- metrics/plots ----------------------------------
+# --------------------- utils -----------------------
+
+def ensure_dirs():
+    Path("results/plots").mkdir(parents=True, exist_ok=True)
+    Path("evidence").mkdir(parents=True, exist_ok=True)
 
 def max_drawdown(curve: pd.Series) -> float:
     peak = curve.cummax()
     dd = (curve / peak - 1.0).min()
     return float(abs(dd) * 100.0)
-
-def ensure_dirs():
-    Path("results/plots").mkdir(parents=True, exist_ok=True)
-    Path("evidence").mkdir(parents=True, exist_ok=True)
 
 def save_plots(eq: pd.Series, eq_bh: pd.Series, y_true, y_pred):
     plt.figure(figsize=(8, 4))
@@ -60,7 +60,7 @@ def save_plots(eq: pd.Series, eq_bh: pd.Series, y_true, y_pred):
         plt.text(j, i, str(v), ha="center", va="center")
     plt.tight_layout(); plt.savefig("results/plots/confusion_matrix.png"); plt.close()
 
-# ------------------------------ core ----------------------------------------
+# ---------------------- core -----------------------
 
 def run(cfg_path: str = "evidence/backtest_config.yaml"):
     ensure_dirs()
@@ -75,7 +75,7 @@ def run(cfg_path: str = "evidence/backtest_config.yaml"):
     oos_start = pd.to_datetime(cfg["oos_start"])
     oos_end = pd.to_datetime(cfg["oos_end"])
 
-    # train needs history before OOS
+    # Training history: ~1y before OOS
     start_all = (oos_start - pd.offsets.BDay(260)).date()
     df = load_or_synth(str(start_all), str(oos_end.date()), seed=seed)
 
@@ -100,21 +100,23 @@ def run(cfg_path: str = "evidence/backtest_config.yaml"):
 
     gross = (w * fwd).sum(axis=1)
 
+    # simple costs
     bps_cost = (fees_bps + slippage_bps) / 1e4
     turnover = w.diff().abs().sum(axis=1) / 2.0
     cost = turnover * bps_cost
     net = gross - cost
 
+    # benchmark: equal-weight buy & hold
     bh = fwd.mean(axis=1)
 
-    # classification metrics on panel labels (not just top-k)
+    # panel classification metrics
     y_hat = (test["proba"] > 0.5).astype(int)
     acc = accuracy_score(y_te, y_hat)
     prec = precision_score(y_te, y_hat, zero_division=0)
     rec = recall_score(y_te, y_hat, zero_division=0)
     f1 = f1_score(y_te, y_hat, zero_division=0)
 
-    # ts metrics
+    # strategy metrics
     eq = (1 + net).cumprod()
     eq_bh = (1 + bh).cumprod()
     sharpe = float(np.sqrt(252) * (net.mean() / (net.std(ddof=1) + 1e-12)))
@@ -138,10 +140,11 @@ def run(cfg_path: str = "evidence/backtest_config.yaml"):
         "buyhold_return": round(bh_ret, 2),
         "turnover": round(avg_turnover, 2),
     }])
+    Path("results").mkdir(exist_ok=True)
     out.to_csv("results/oos_metrics.csv", index=False)
     print("\nOOS metrics\n", out.to_string(index=False))
 
-# ------------------------------ cli -----------------------------------------
+# ---------------------- cli -----------------------
 
 def main():
     ap = argparse.ArgumentParser()
@@ -151,3 +154,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
