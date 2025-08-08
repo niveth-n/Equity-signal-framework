@@ -1,0 +1,12 @@
+universe: "S&P 100 (sampled)"
+frequency: "daily"
+oos_start: "2025-07-01"
+oos_end:   "2025-07-31"
+fees_bps: 2
+slippage_bps: 5
+execution: "next_bar_close"
+position_sizing: "equal_weight_top_k"
+top_k: 5
+rebalance: "daily"
+max_gross_leverage: 1.0
+seed: 42
