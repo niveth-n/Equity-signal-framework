@@ -1,4 +1,4 @@
-universe: "S&P 100 (sampled)"
+universe: "U.S. equities (sampled)"
 frequency: "daily"
 oos_start: "2025-07-01"
 oos_end:   "2025-07-31"
