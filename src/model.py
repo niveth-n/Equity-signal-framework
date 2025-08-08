@@ -10,6 +10,7 @@ def make_xy(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Series]:
     return X, y
 
 def train_model(X, y, seed: int = 42):
-    clf = LogisticRegression(max_iter=400, C=1.0, solver="lbfgs", random_state=seed)
+    # Simple, reliable baseline for the public demo
+    clf = LogisticRegression(max_iter=500, C=1.0, solver="lbfgs", random_state=seed)
     clf.fit(X, y)
     return clf
