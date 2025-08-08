@@ -3,8 +3,8 @@ import numpy as np
 
 def add_basic_features(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Expects columns: ['date','asset','close'] with business-day frequency per asset.
-    Returns df with features + targets: y (next-day up/down), fwd_ret.
+    Expects columns: ['date','asset','close'] (business days).
+    Returns df with simple features + targets: y (next-day up/down), fwd_ret.
     """
     x = df.sort_values(["asset", "date"]).copy()
     g = x.groupby("asset", group_keys=False)
@@ -15,7 +15,7 @@ def add_basic_features(df: pd.DataFrame) -> pd.DataFrame:
     x["vol_20"] = r1.rolling(20).std()
     x["ma_ratio_10"] = x["close"] / g["close"].transform(lambda s: s.rolling(10).mean())
 
-    # cross-sectional z-score per date (of 5-day momentum)
+    # cross-sectional z-score of 5-day momentum per date
     x["mom_5_cs"] = x.groupby("date")["mom_5"].transform(
         lambda s: (s - s.mean()) / (s.std(ddof=0) + 1e-9)
     )
@@ -24,6 +24,5 @@ def add_basic_features(df: pd.DataFrame) -> pd.DataFrame:
     x["fwd_ret"] = g["close"].pct_change(-1)
     x["y"] = (x["fwd_ret"] > 0).astype(int)
 
-    # tidy
     x.replace([np.inf, -np.inf], np.nan, inplace=True)
     return x
