@@ -35,8 +35,6 @@ A focused framework to model short-horizon **direction** of equity returns. The 
 - **Fields used:** Adjusted **Open, High, Low, Close, Volume** (or tick volume where volume is unavailable).
 - **Cleaning & warm-up:**  
   Require ≥ **60** bars history before first label; drop rows with missing O/H/L/C; align to trading calendar; keep delist dates (no survivorship in OOS).
-- **Target (label):** next-day **direction**  
-  \( y_{t+1} = \mathbb{1}\!\left[\frac{Close_{t+1}}{Close_t} - 1 > 0\right] \)
 - **Execution & costs:** **next-bar close**; demo uses uniform **fees=2 bps**, **slippage=5 bps**. (Full pipeline uses per-asset assumptions.)
 
 ## Feature engineering (full pipeline)
