@@ -43,7 +43,7 @@ We standardize within-asset and cross-sectionally per date; winsorize at 1st/99t
 
 - **Price/return:** r1 (1-day), **mom_5/10/20**, **ma_ratio_10/20**, **mean_rev_5** (z-score of r1).
 - **Volatility & range:** **vol_20** (std of r1), **atr_14_pct**, **vol_of_vol_5**.
-- **Session/microstructure:** **gap_open** (O_t/C_{t-1}−1), **hi_lo_range**, **close_loc** (close within day range).
+- **Session/microstructure:** **gap_open** (O(t)/(C(t-1)−1), **hi_lo_range**, **close_loc** (close within day range).
 - **Volume/liquidity:** **volu_z20** (z-score vs 20-day mean), **adv_pct** (dollar vol ÷ 20-day ADV; proxy where needed).
 - **Cross-sectional (per date):** **mom_20_cs**, **reversal_1d_cs**, **vol_20_cs** (z-scores/ranks across the 26 instruments).
 - **Market/regime context:** **mkt_ret_20 / mkt_vol_20** (broad-market proxy like DXY/SPY), **breadth_ma50** (% above MA50), **dow_onehot** (calendar).
