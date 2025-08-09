@@ -1,0 +1,6 @@
+metric,value
+events,293905
+accuracy_percent,61.25
+moe95_percent,0.18
+split,cross_validation_out_of_fold
+notes,"stacked pipeline; leakage-safe; time-blocked splits"
